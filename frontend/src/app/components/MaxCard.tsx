@@ -20,23 +20,10 @@ export default function MaxCard({
         <span className="corner br" />
 
         <div className="max-brand">
-          <svg width="30" height="30" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <g className="max-brand-outer">
-              <polygon
-                points="15,2 28,15 15,28 2,15"
-                stroke="#F08D39"
-                strokeWidth="1.2"
-                fill="rgba(240,141,57,0.06)"
-              />
-            </g>
-            <polygon
-              points="15,8 22,15 15,22 8,15"
-              stroke="#F08D39"
-              strokeWidth="0.6"
-              fill="rgba(240,141,57,0.04)"
-              opacity="0.7"
-            />
-            <circle cx="15" cy="15" r="2.2" fill="#F08D39" opacity="0.8" />
+          <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="16" cy="16" r="16" fill="#EF7722" opacity="0.88" />
+            <circle cx="32" cy="16" r="16" fill="#0BA6DF" opacity="0.82" />
+            <circle cx="24" cy="16" r="8" fill="white" opacity="0.28" />
           </svg>
         </div>
 
