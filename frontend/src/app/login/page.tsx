@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { signIn } from "next-auth/react";
+import { signIn, getSession } from "next-auth/react";
 import MaxCard from "../components/MaxCard";
 
 export default function Login() {
@@ -27,7 +27,10 @@ export default function Login() {
       if (res?.error) {
         setError("Invalid email or password.");
       } else {
-        router.push("/");
+        const session = await getSession();
+        const slug = (session as any)?.storeSlug;
+        const userRole = (session as any)?.role;
+        router.push(slug && userRole ? `/${slug}/${userRole}` : "/admin");
         router.refresh();
       }
     } catch {

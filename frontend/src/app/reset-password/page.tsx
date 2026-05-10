@@ -3,6 +3,7 @@
 import { useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import MaxCard from "../components/MaxCard";
+import { API } from "@/lib/api";
 
 function ResetPasswordContent() {
   const searchParams = useSearchParams();
@@ -36,7 +37,7 @@ function ResetPasswordContent() {
     setIsLoading(true);
     setMessage("");
     try {
-      const res = await fetch("http://localhost:3001/auth/reset-password", {
+      const res = await fetch(`${API}/auth/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ token, password }),

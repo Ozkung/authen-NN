@@ -4,6 +4,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { StoresModule } from './stores/stores.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
 import { AuthGuard } from './common/guards/auth.guard';
@@ -16,14 +17,14 @@ import { AuthGuard } from './common/guards/auth.guard';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         uri:
-          (configService.get<string>('MONGODB_URI') ??
-            `configService.get<string>('MONGODB_URI')`) +
+          (configService.get<string>('MONGODB_URI') ?? 'mongodb://localhost:27017/') +
           'auth-db?authSource=admin',
       }),
       inject: [ConfigService],
     }),
     AuthModule,
     UsersModule,
+    StoresModule,
   ],
   providers: [
     {

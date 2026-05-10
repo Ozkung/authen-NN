@@ -7,28 +7,31 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
+        identityStore: { label: "Identity Store", type: "text" },
       },
       authorize: async (credentials) => {
-        if (!credentials?.email || !credentials?.password) {
-          return null;
-        }
+        if (!credentials?.email || !credentials?.password) return null;
 
-        const res = await fetch("http://localhost:3001/auth/login", {
+        const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
+        const res = await fetch(`${api}/auth/login`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             email: credentials.email,
             password: credentials.password,
+            identityStore: credentials.identityStore || undefined,
           }),
         });
 
-        const user = await res.json();
+        const data = await res.json();
 
-        if (res.ok && user && user.access_token) {
+        if (res.ok && data?.access_token) {
           return {
-            id: user.access_token,
+            id: data.access_token,
             email: credentials.email as string,
-            accessToken: user.access_token,
+            accessToken: data.access_token,
+            storeSlug: data.storeSlug ?? null,
+            role: data.role ?? null,
           };
         }
 
@@ -42,34 +45,50 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   callbacks: {
     authorized({ auth, request: { nextUrl } }) {
       const isLoggedIn = !!auth?.user;
-      const isOnDashboard = nextUrl.pathname === "/";
+
       const isOnAuthPage = [
         "/login",
         "/register",
         "/forgot-password",
         "/reset-password",
-        "/verify-email",
       ].includes(nextUrl.pathname);
 
-      if (isOnDashboard) {
-        if (isLoggedIn) return true;
-        return false; // Redirect unauthenticated users to login page
-      } else if (isOnAuthPage) {
-        if (isLoggedIn) {
-          return Response.redirect(new URL("/", nextUrl));
-        }
+      // /verify-email is always public (accessible logged-in or not)
+      if (nextUrl.pathname === "/verify-email") return true;
+
+      // Logged-in users on auth pages → send to admin hub
+      if (isOnAuthPage) {
+        if (isLoggedIn) return Response.redirect(new URL("/admin", nextUrl));
         return true;
       }
+
+      // Protected pages: /, /admin, and /[store]/[role] patterns
+      const isProtected =
+        nextUrl.pathname === "/" ||
+        nextUrl.pathname === "/admin" ||
+        /^\/[^/]+\/[^/]+/.test(nextUrl.pathname);
+
+      if (isProtected) {
+        if (isLoggedIn) return true;
+        return Response.redirect(new URL("/login", nextUrl));
+      }
+
       return true;
     },
+
     async jwt({ token, user }) {
       if (user) {
         token.accessToken = (user as any).accessToken;
+        token.storeSlug = (user as any).storeSlug ?? null;
+        token.role = (user as any).role ?? null;
       }
       return token;
     },
+
     async session({ session, token }) {
       (session as any).accessToken = (token as any).accessToken;
+      (session as any).storeSlug = (token as any).storeSlug ?? null;
+      (session as any).role = (token as any).role ?? null;
       return session;
     },
   },

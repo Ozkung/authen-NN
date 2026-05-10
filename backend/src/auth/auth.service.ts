@@ -7,6 +7,7 @@ import { UsersService } from '../users/users.service';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { MailService } from '../mail/mail.service';
+import { StoresService } from '../stores/stores.service';
 import * as crypto from 'crypto';
 
 @Injectable()
@@ -15,6 +16,7 @@ export class AuthService {
     private usersService: UsersService,
     private jwtService: JwtService,
     private mailService: MailService,
+    private storesService: StoresService,
   ) {}
 
   async register(
@@ -41,31 +43,50 @@ export class AuthService {
       birthDate: birthDate ? new Date(birthDate) : undefined,
     });
 
-    await this.mailService.sendVerificationEmail(email, verificationToken);
+    try {
+      await this.mailService.sendVerificationEmail(email, verificationToken);
+    } catch {
+      await this.usersService.deleteById(user._id as any);
+      throw new BadRequestException(
+        'Failed to send verification email. Please try again.',
+      );
+    }
 
     return {
       message: 'User registered. Please check your email to verify account.',
     };
   }
 
-  async login(email: string, pass: string) {
+  async login(email: string, pass: string, identityStore?: string) {
     const user = await this.usersService.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    if (!user.isVerified) {
-      throw new UnauthorizedException('Please verify your email first');
-    }
+    if (!user) throw new UnauthorizedException('Invalid credentials');
+    if (!user.isVerified) throw new UnauthorizedException('Please verify your email first');
 
     const isMatch = await bcrypt.compare(pass, user.password);
-    if (!isMatch) {
-      throw new UnauthorizedException('Invalid credentials');
+    if (!isMatch) throw new UnauthorizedException('Invalid credentials');
+
+    let storeSlug: string | undefined;
+    let role: string | undefined;
+
+    if (identityStore) {
+      const store = await this.storesService.findBySlug(identityStore);
+      if (!store) throw new UnauthorizedException('Store not found');
+
+      const member = await this.storesService.findMember(
+        store._id as any,
+        user._id as any,
+      );
+      if (!member) throw new UnauthorizedException('You do not have access to this store');
+
+      storeSlug = store.slug;
+      role = member.role;
     }
 
-    const payload = { sub: user._id, email: user.email };
+    const payload = { sub: user._id, email: user.email, storeSlug, role };
     return {
       access_token: await this.jwtService.signAsync(payload),
+      storeSlug: storeSlug ?? null,
+      role: role ?? null,
     };
   }
 

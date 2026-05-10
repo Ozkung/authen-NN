@@ -3,6 +3,7 @@
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import MaxCard from '../components/MaxCard';
+import { API } from '@/lib/api';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -20,7 +21,7 @@ function VerifyEmailContent() {
       return;
     }
 
-    fetch(`http://localhost:3001/auth/verify?token=${token}`)
+    fetch(`${API}/auth/verify?token=${token}`)
       .then((res) => res.json())
       .then((data) => {
         if (data.message === 'Email verified successfully') {

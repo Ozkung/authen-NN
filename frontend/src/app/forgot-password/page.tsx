@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import MaxCard from "../components/MaxCard";
+import { API } from "@/lib/api";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -14,7 +15,7 @@ export default function ForgotPassword() {
     setIsLoading(true);
     setMessage("");
     try {
-      const res = await fetch("http://localhost:3001/auth/forgot-password", {
+      const res = await fetch(`${API}/auth/forgot-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),

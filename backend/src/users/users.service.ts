@@ -28,6 +28,25 @@ export class UsersService {
   }
 
   async update(id: string, updateData: Partial<User>): Promise<User | null> {
-    return this.userModel.findByIdAndUpdate(id, updateData, { new: true }).exec();
+    const $set: Record<string, unknown> = {};
+    const $unset: Record<string, ''> = {};
+
+    for (const [key, value] of Object.entries(updateData)) {
+      if (value === undefined) {
+        $unset[key] = '';
+      } else {
+        $set[key] = value;
+      }
+    }
+
+    const op: Record<string, unknown> = {};
+    if (Object.keys($set).length) op.$set = $set;
+    if (Object.keys($unset).length) op.$unset = $unset;
+
+    return this.userModel.findByIdAndUpdate(id, op, { new: true }).exec();
+  }
+
+  async deleteById(id: string): Promise<void> {
+    await this.userModel.findByIdAndDelete(id).exec();
   }
 }

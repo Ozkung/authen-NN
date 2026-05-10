@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import MaxCard from "../components/MaxCard";
+import { API } from "@/lib/api";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -26,7 +27,7 @@ export default function Register() {
     setIsLoading(true);
     setMessage("");
     try {
-      const res = await fetch("http://localhost:3001/auth/register", {
+      const res = await fetch(`${API}/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
