@@ -8,6 +8,7 @@ import MaxCard from "../components/MaxCard";
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [identityStore, setIdentityStore] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function Login() {
       const res = await signIn("credentials", {
         email,
         password,
+        ...(identityStore && { identityStore }),
         redirect: false,
       });
       if (res?.error) {
@@ -43,7 +45,7 @@ export default function Login() {
           <input
             type="email"
             className="max-input"
-            placeholder="your@email.com"
+            placeholder="Email Address"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -56,7 +58,7 @@ export default function Login() {
           <input
             type="password"
             className="max-input"
-            placeholder="••••••••••"
+            placeholder="Password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -64,8 +66,33 @@ export default function Login() {
           />
         </div>
 
+        <div className="max-field">
+          <label className="max-label">
+            Identity Store{" "}
+            <span
+              style={{
+                color: "#6A5E7A",
+                fontWeight: 300,
+                letterSpacing: "0.1em",
+              }}
+            >
+              — optional
+            </span>
+          </label>
+          <input
+            type="text"
+            className="max-input"
+            placeholder="1234567890abcdef"
+            value={identityStore}
+            onChange={(e) => setIdentityStore(e.target.value)}
+            autoComplete="off"
+          />
+        </div>
+
         <div className="max-forgot-row">
-          <a href="/forgot-password" className="max-link">Forgot password?</a>
+          <a href="/forgot-password" className="max-link">
+            Forgot password?
+          </a>
         </div>
 
         {error && <p className="max-error">{error}</p>}
@@ -79,7 +106,9 @@ export default function Login() {
       <div className="max-footer">
         <p className="max-footer-text">
           No account?{" "}
-          <a href="/register" className="max-link">Create one</a>
+          <a href="/register" className="max-link">
+            Create one
+          </a>
         </p>
       </div>
     </MaxCard>

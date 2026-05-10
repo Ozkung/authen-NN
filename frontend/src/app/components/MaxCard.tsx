@@ -24,19 +24,19 @@ export default function MaxCard({
             <g className="max-brand-outer">
               <polygon
                 points="15,2 28,15 15,28 2,15"
-                stroke="#C9A84C"
+                stroke="#F08D39"
                 strokeWidth="1.2"
-                fill="rgba(201,168,76,0.06)"
+                fill="rgba(240,141,57,0.06)"
               />
             </g>
             <polygon
               points="15,8 22,15 15,22 8,15"
-              stroke="#C9A84C"
+              stroke="#F08D39"
               strokeWidth="0.6"
-              fill="rgba(201,168,76,0.04)"
+              fill="rgba(240,141,57,0.04)"
               opacity="0.7"
             />
-            <circle cx="15" cy="15" r="2.2" fill="#C9A84C" opacity="0.8" />
+            <circle cx="15" cy="15" r="2.2" fill="#F08D39" opacity="0.8" />
           </svg>
         </div>
 
