@@ -1,25 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Input,
-  Button,
-  Link,
-  TextField,
-  Label,
-  Select,
-  ListBox,
-  DatePicker,
-  DateField,
-  Calendar,
-  FieldError,
-  Checkbox,
-  Description,
-} from "@heroui/react";
-import { DateValue } from "@internationalized/date";
+import MaxCard from "../components/MaxCard";
 
 export default function Register() {
   const [email, setEmail] = useState("");
@@ -27,218 +9,172 @@ export default function Register() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [gender, setGender] = useState("");
-  const [birthDate, setBirthDate] = useState<DateValue | null>(null);
+  const [birthDate, setBirthDate] = useState("");
   const [isAccepted, setIsAccepted] = useState(false);
   const [message, setMessage] = useState("");
+  const [isError, setIsError] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const passwordsMatch = password === confirmPassword;
-  const showPasswordError = confirmPassword.length > 0 && !passwordsMatch;
+  const showMismatch = confirmPassword.length > 0 && !passwordsMatch;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!passwordsMatch) {
-      setMessage("Passwords do not match");
-      return;
-    }
-
-    if (!isAccepted) {
-      setMessage("You must accept the terms and privacy policy");
-      return;
-    }
+    if (!passwordsMatch) { setIsError(true); setMessage("Passwords do not match."); return; }
+    if (!isAccepted)     { setIsError(true); setMessage("You must accept the terms to continue."); return; }
 
     setIsLoading(true);
     setMessage("");
-
-    const res = await fetch("http://localhost:3001/auth/register", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        email,
-        password,
-        displayName,
-        gender,
-        birthDate: birthDate ? birthDate.toString() : undefined,
-      }),
-    });
-    const data = await res.json();
-    setIsLoading(false);
-    setMessage(data.message || data.error || "Something went wrong");
+    try {
+      const res = await fetch("http://localhost:3001/auth/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email,
+          password,
+          displayName,
+          gender,
+          birthDate: birthDate || undefined,
+        }),
+      });
+      const data = await res.json();
+      setIsError(!res.ok);
+      setMessage(data.message || data.error || "Something went wrong.");
+    } catch {
+      setIsError(true);
+      setMessage("Could not reach the server. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-8 bg-gray-50">
-      <Card className="w-[450px] shadow-lg">
-        <CardHeader className="flex flex-col items-center gap-1 py-6">
-          <h1 className="text-2xl font-bold">Register</h1>
-          <p className="text-small text-default-500">
-            Create an account to get started.
-          </p>
-        </CardHeader>
-        <CardContent className="pb-6 px-2">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <TextField onChange={setDisplayName} isRequired>
-              <Label>Display Name</Label>
-              <Input
-                type="text"
-                placeholder="Enter your display name"
-                value={displayName}
-              />
-            </TextField>
+    <MaxCard title="Create Account" subtitle="Join us — it only takes a moment">
+      <form onSubmit={handleSubmit} className="max-form">
 
-            <TextField onChange={setEmail} isRequired>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-              />
-            </TextField>
+        <div className="max-field">
+          <label className="max-label">Display Name</label>
+          <input
+            type="text"
+            className="max-input"
+            placeholder="How should we call you?"
+            value={displayName}
+            onChange={(e) => setDisplayName(e.target.value)}
+            required
+            autoComplete="name"
+          />
+        </div>
 
-            <TextField onChange={setPassword} isRequired>
-              <Label>Password</Label>
-              <Input
-                type="password"
-                placeholder="Create a password"
-                value={password}
-              />
-            </TextField>
+        <div className="max-field">
+          <label className="max-label">Email Address</label>
+          <input
+            type="email"
+            className="max-input"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+        </div>
 
-            <TextField
-              onChange={setConfirmPassword}
-              isRequired
-              isInvalid={showPasswordError}
-            >
-              <Label>Confirm Password</Label>
-              <Input
-                type="password"
-                placeholder="Confirm your password"
-                value={confirmPassword}
-              />
-              {showPasswordError && (
-                <FieldError>Passwords do not match</FieldError>
-              )}
-            </TextField>
+        <div className="max-field">
+          <label className="max-label">Password</label>
+          <input
+            type="password"
+            className="max-input"
+            placeholder="••••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+          />
+        </div>
 
-            <div className="flex gap-4 items-start">
-              <Select
-                className="w-1/3"
-                placeholder="Select gender"
-                onSelectionChange={(val) => setGender(val as string)}
-                isRequired
-              >
-                <Label>Gender</Label>
-                <Select.Trigger>
-                  <Select.Value />
-                  <Select.Indicator />
-                </Select.Trigger>
-                <Select.Popover>
-                  <ListBox>
-                    <ListBox.Item id="male" textValue="Male">
-                      Male
-                    </ListBox.Item>
-                    <ListBox.Item id="female" textValue="Female">
-                      Female
-                    </ListBox.Item>
-                    <ListBox.Item id="other" textValue="Other">
-                      Other
-                    </ListBox.Item>
-                  </ListBox>
-                </Select.Popover>
-              </Select>
-
-              <DatePicker
-                className="w-2/3"
-                isRequired
-                value={birthDate}
-                onChange={setBirthDate}
-              >
-                <Label>Birth Date</Label>
-                <DateField.Group fullWidth>
-                  <DateField.Input>
-                    {(segment) => <DateField.Segment segment={segment} />}
-                  </DateField.Input>
-                  <DateField.Suffix>
-                    <DatePicker.Trigger>
-                      <DatePicker.TriggerIndicator />
-                    </DatePicker.Trigger>
-                  </DateField.Suffix>
-                </DateField.Group>
-                <DatePicker.Popover>
-                  <Calendar aria-label="Birth date">
-                    <Calendar.Header>
-                      <Calendar.YearPickerTrigger>
-                        <Calendar.YearPickerTriggerHeading />
-                        <Calendar.YearPickerTriggerIndicator />
-                      </Calendar.YearPickerTrigger>
-                      <Calendar.NavButton slot="previous" />
-                      <Calendar.NavButton slot="next" />
-                    </Calendar.Header>
-                    <Calendar.Grid>
-                      <Calendar.GridHeader>
-                        {(day) => (
-                          <Calendar.HeaderCell>{day}</Calendar.HeaderCell>
-                        )}
-                      </Calendar.GridHeader>
-                      <Calendar.GridBody>
-                        {(date) => <Calendar.Cell date={date} />}
-                      </Calendar.GridBody>
-                    </Calendar.Grid>
-                    <Calendar.YearPickerGrid>
-                      <Calendar.YearPickerGridBody>
-                        {({ year }) => <Calendar.YearPickerCell year={year} />}
-                      </Calendar.YearPickerGridBody>
-                    </Calendar.YearPickerGrid>
-                  </Calendar>
-                </DatePicker.Popover>
-              </DatePicker>
-            </div>
-
-            <Checkbox
-              name="agreement"
-              isSelected={isAccepted}
-              onChange={setIsAccepted}
-            >
-              <Checkbox.Control>
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-              <Checkbox.Content>
-                <Label htmlFor="agreement">I agree to the terms</Label>
-                <Description>You must accept the terms to continue</Description>
-              </Checkbox.Content>
-            </Checkbox>
-
-            <Button
-              type="submit"
-              variant="primary"
-              isPending={isLoading}
-              className="mt-4 w-full"
-              isDisabled={showPasswordError || !isAccepted}
-            >
-              Register
-            </Button>
-          </form>
-          {message && (
-            <p
-              className={`mt-4 text-center text-small ${
-                message.includes("error") ||
-                message.includes("wrong") ||
-                message.includes("exists") ||
-                message.includes("match") ||
-                message.includes("accept")
-                  ? "text-danger"
-                  : "text-primary"
-              }`}
-            >
-              {message}
-            </p>
+        <div className="max-field">
+          <label className="max-label">Confirm Password</label>
+          <input
+            type="password"
+            className="max-input"
+            placeholder="••••••••••"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            autoComplete="new-password"
+            style={showMismatch ? { borderBottomColor: "#E07878" } : undefined}
+          />
+          {showMismatch && (
+            <span style={{
+              fontFamily: "var(--font-ui)",
+              fontSize: "0.62rem",
+              letterSpacing: "0.06em",
+              color: "#E07878",
+            }}>
+              Passwords do not match
+            </span>
           )}
-          <p className="mt-6 text-center text-small">
-            Already have an account? <Link href="/login">Login</Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+
+        <div className="max-form-row">
+          <div className="max-field">
+            <label className="max-label">Gender</label>
+            <select
+              className="max-input max-select"
+              value={gender}
+              onChange={(e) => setGender(e.target.value)}
+              required
+            >
+              <option value="" disabled>Select…</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+
+          <div className="max-field">
+            <label className="max-label">Birth Date</label>
+            <input
+              type="date"
+              className="max-input"
+              value={birthDate}
+              onChange={(e) => setBirthDate(e.target.value)}
+              required
+            />
+          </div>
+        </div>
+
+        <label className="max-checkbox-row">
+          <input
+            type="checkbox"
+            className="max-checkbox-input"
+            checked={isAccepted}
+            onChange={(e) => setIsAccepted(e.target.checked)}
+          />
+          <span className="max-checkbox-text">
+            I agree to the terms of service and privacy policy
+          </span>
+        </label>
+
+        {message && (
+          <p className={isError ? "max-error" : "max-success-msg"}>{message}</p>
+        )}
+
+        <button
+          type="submit"
+          className="max-btn"
+          disabled={isLoading || showMismatch || !isAccepted}
+        >
+          {isLoading ? <span className="max-spinner" /> : null}
+          {isLoading ? "Creating Account…" : "Create Account"}
+        </button>
+      </form>
+
+      <div className="max-footer">
+        <p className="max-footer-text">
+          Already have an account?{" "}
+          <a href="/login" className="max-link">Sign in</a>
+        </p>
+      </div>
+    </MaxCard>
   );
 }

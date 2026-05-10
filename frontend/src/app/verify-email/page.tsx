@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { Suspense } from 'react';
-import { Card, CardHeader, CardContent, Button, Link } from '@heroui/react';
+import MaxCard from '../components/MaxCard';
 
 function VerifyEmailContent() {
   const searchParams = useSearchParams();
@@ -11,13 +10,13 @@ function VerifyEmailContent() {
   const router = useRouter();
 
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
-  const [message, setMessage] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
   const [countdown, setCountdown] = useState(5);
 
   useEffect(() => {
     if (!token) {
       setStatus('error');
-      setMessage('No verification token provided.');
+      setErrorMsg('No verification token found in this link.');
       return;
     }
 
@@ -28,96 +27,111 @@ function VerifyEmailContent() {
           setStatus('success');
         } else {
           setStatus('error');
-          setMessage(data.message || 'Verification failed. The link may have expired.');
+          setErrorMsg(
+            data.message || 'Verification failed. The link may have expired.'
+          );
         }
       })
       .catch(() => {
         setStatus('error');
-        setMessage('Could not reach the server. Please try again later.');
+        setErrorMsg('Could not reach the server. Please try again later.');
       });
   }, [token]);
 
   useEffect(() => {
     if (status !== 'success') return;
-
-    if (countdown === 0) {
-      router.push('/login');
-      return;
-    }
-
-    const timer = setTimeout(() => setCountdown((c) => c - 1), 1000);
-    return () => clearTimeout(timer);
+    if (countdown === 0) { router.push('/login'); return; }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000);
+    return () => clearTimeout(t);
   }, [status, countdown, router]);
 
+  const icon =
+    status === 'loading' ? '⧗' :
+    status === 'success' ? '◈' : '◇';
+
+  const title =
+    status === 'loading' ? 'Verifying…' :
+    status === 'success' ? 'All Confirmed' : 'Verification Failed';
+
+  const subtitle =
+    status === 'loading' ? 'Please hold on' :
+    status === 'success' ? 'Your account is now active' : 'Something went wrong';
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-8 bg-gray-50">
-      <Card className="w-[450px] shadow-lg">
-        <CardHeader className="flex flex-col items-center gap-1 py-6">
-          {status === 'loading' && (
-            <>
-              <div className="text-4xl mb-2">⏳</div>
-              <h1 className="text-2xl font-bold">Verifying your email...</h1>
-            </>
-          )}
-          {status === 'success' && (
-            <>
-              <div className="text-4xl mb-2">✅</div>
-              <h1 className="text-2xl font-bold">Email Verified!</h1>
-            </>
-          )}
-          {status === 'error' && (
-            <>
-              <div className="text-4xl mb-2">❌</div>
-              <h1 className="text-2xl font-bold">Verification Failed</h1>
-            </>
-          )}
-        </CardHeader>
+    <MaxCard title={title} subtitle={subtitle}>
+      <div className="max-status-body">
+        <div
+          className="max-status-icon"
+          style={{
+            color:
+              status === 'success' ? '#C9A84C' :
+              status === 'error'   ? '#E07878' : '#6A5E7A',
+          }}
+        >
+          {icon}
+        </div>
 
-        <CardContent className="pb-8 px-8 flex flex-col items-center gap-4 text-center">
-          {status === 'loading' && (
-            <p className="text-default-500">Please wait while we verify your email.</p>
-          )}
+        {status === 'loading' && (
+          <p className="max-status-sub">
+            We are confirming your email address.<br />
+            This will only take a moment.
+          </p>
+        )}
 
-          {status === 'success' && (
-            <>
-              <p className="text-default-700 text-base leading-relaxed">
-                Thank you for registering on this website.
-              </p>
-              <p className="text-default-500 text-small">
-                Your email has been confirmed. You can now log in to your account.
-              </p>
-              <p className="text-default-400 text-small mt-2">
-                Redirecting to login in{' '}
-                <span className="font-semibold text-primary">{countdown}</span> second
-                {countdown !== 1 ? 's' : ''}...
-              </p>
-              <Button
-                variant="primary"
-                className="mt-2 w-full"
-                onPress={() => router.push('/login')}
-              >
-                Go to Login now
-              </Button>
-            </>
-          )}
+        {status === 'success' && (
+          <>
+            <p className="max-status-lead">
+              Thank you for registering on this website.
+            </p>
+            <p className="max-status-sub">
+              Your email has been confirmed and your account is ready.<br />
+              You may now sign in and begin your journey.
+            </p>
+            <p className="max-countdown">
+              Redirecting in{' '}
+              <span className="max-countdown-num">{countdown}</span>
+              {countdown === 1 ? ' second' : ' seconds'}
+            </p>
+            <button
+              className="max-btn"
+              onClick={() => router.push('/login')}
+            >
+              Go to Login Now
+            </button>
+          </>
+        )}
 
-          {status === 'error' && (
-            <>
-              <p className="text-danger text-small">{message}</p>
-              <Link href="/login" className="mt-2">
-                Back to Login
-              </Link>
-            </>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+        {status === 'error' && (
+          <>
+            <p className="max-status-sub">{errorMsg}</p>
+            <a href="/login" className="max-link">Back to Login</a>
+          </>
+        )}
+      </div>
+    </MaxCard>
   );
 }
 
 export default function VerifyEmail() {
   return (
-    <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+    <Suspense
+      fallback={
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          minHeight: '100vh',
+          background: '#080412',
+          color: '#C9A84C',
+          fontFamily: 'var(--font-ui)',
+          fontSize: '0.65rem',
+          letterSpacing: '0.2em',
+          textTransform: 'uppercase',
+        }}>
+          Loading…
+        </div>
+      }
+    >
       <VerifyEmailContent />
     </Suspense>
   );

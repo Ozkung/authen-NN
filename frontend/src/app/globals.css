@@ -8,7 +8,6 @@
 .default,
 [data-theme="light"],
 [data-theme="default"] {
-  /* Theme Colors (Light Mode) */
   --accent: oklch(58.87% 0.2099 32.60);
   --accent-foreground: oklch(99.11% 0 0);
   --background: oklch(97.02% 0.0015 32.60);
@@ -39,20 +38,14 @@
   --surface-tertiary-foreground: oklch(21.03% 0.0015 32.60);
   --warning: oklch(78.19% 0.1590 45.78);
   --warning-foreground: oklch(21.03% 0.0059 45.78);
-
-  /* Border Radius */
   --radius: 0.5rem;
   --field-radius: 0.75rem;
-
-  /* Font Family */
-  /* Make sure to load Noto Sans Thai font in your app */
   --font-sans: "Noto Sans Thai", sans-serif;
 }
 
 .dark,
 [data-theme="dark"] {
   color-scheme: dark;
-  /* Theme Colors (Dark Mode) */
   --accent: oklch(58.87% 0.2099 32.60);
   --accent-foreground: oklch(99.11% 0 0);
   --background: oklch(12.00% 0.0015 32.60);
@@ -88,29 +81,521 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
+  --font-sans: var(--font-ui);
   --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
 }
 
 body {
   background: var(--background);
-  /* color: var(--foreground); */
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
 }
 
-a {
-  color: black;
+/* ============================================
+   MAXIMALIST AUTH DESIGN SYSTEM
+   Opulent Darkness — Baroque Digital
+   ============================================ */
+
+/* ---------- Keyframes ---------- */
+
+@keyframes orb-drift {
+  0%, 100% { transform: scale(1) translate(0, 0);    opacity: 0.38; }
+  33%       { transform: scale(1.12) translate(24px, -18px); opacity: 0.55; }
+  66%       { transform: scale(0.94) translate(-12px, 12px); opacity: 0.42; }
+}
+
+@keyframes orb-pulse {
+  0%, 100% { transform: scale(1);    opacity: 0.3; }
+  50%       { transform: scale(1.18); opacity: 0.5; }
+}
+
+@keyframes card-rise {
+  from { opacity: 0; transform: translateY(32px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes brand-spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes countdown-pulse {
+  0%, 100% { opacity: 1;   transform: scale(1); }
+  50%       { opacity: 0.7; transform: scale(1.15); }
+}
+
+/* ---------- Scene / Background ---------- */
+
+.max-scene {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1rem;
+  background-color: #080412;
+  background-image:
+    radial-gradient(ellipse 65% 55% at 10% 65%, rgba(139, 21, 64, 0.38) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 65% at 88% 15%, rgba(51, 20, 110, 0.45) 0%, transparent 70%),
+    radial-gradient(ellipse 45% 45% at 55% 90%, rgba(120, 15, 55, 0.22) 0%, transparent 60%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Diamond crosshatch overlay */
+.max-scene::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    repeating-linear-gradient( 45deg, transparent 0px, transparent 30px, rgba(201,168,76,0.022) 30px, rgba(201,168,76,0.022) 31px),
+    repeating-linear-gradient(-45deg, transparent 0px, transparent 30px, rgba(201,168,76,0.022) 30px, rgba(201,168,76,0.022) 31px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ---------- Ambient Orbs ---------- */
+
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orb-1 {
+  width: 520px; height: 520px;
+  background: radial-gradient(circle, rgba(139,21,64,0.42) 0%, transparent 70%);
+  top: -130px; left: -160px;
+  animation: orb-drift 13s ease-in-out infinite;
+}
+
+.orb-2 {
+  width: 640px; height: 640px;
+  background: radial-gradient(circle, rgba(51,20,110,0.48) 0%, transparent 70%);
+  bottom: -170px; right: -170px;
+  animation: orb-drift 18s ease-in-out infinite reverse;
+}
+
+.orb-3 {
+  width: 280px; height: 280px;
+  background: radial-gradient(circle, rgba(201,168,76,0.18) 0%, transparent 70%);
+  top: 42%; right: 18%;
+  animation: orb-pulse 9s ease-in-out infinite;
+}
+
+/* ---------- Card ---------- */
+
+.max-card {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 480px;
+  background: rgba(12, 7, 26, 0.93);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(201, 168, 76, 0.18);
+  padding: 3rem 2.75rem 2.75rem;
+  animation: card-rise 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Inner gold-to-crimson gradient wash */
+.max-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(135deg, rgba(201,168,76,0.06) 0%, transparent 45%),
+    linear-gradient(315deg, rgba(139,21,64,0.06) 0%, transparent 45%);
+  pointer-events: none;
+}
+
+/* ---------- Corner Ornaments ---------- */
+
+.corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+}
+.corner.tl { top: -1px;    left: -1px;  border-top: 2px solid #C9A84C; border-left: 2px solid #C9A84C; }
+.corner.tr { top: -1px;    right: -1px; border-top: 2px solid #C9A84C; border-right: 2px solid #C9A84C; }
+.corner.bl { bottom: -1px; left: -1px;  border-bottom: 2px solid #C9A84C; border-left: 2px solid #C9A84C; }
+.corner.br { bottom: -1px; right: -1px; border-bottom: 2px solid #C9A84C; border-right: 2px solid #C9A84C; }
+
+/* ---------- Brand Mark ---------- */
+
+.max-brand {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1.75rem;
+}
+
+.max-brand-outer {
+  animation: brand-spin 20s linear infinite;
+  transform-origin: center;
+}
+
+/* ---------- Header ---------- */
+
+.max-header {
+  text-align: center;
+  margin-bottom: 0.5rem;
+}
+
+.max-title {
+  font-family: var(--font-display, "Cormorant Garamond", serif);
+  font-size: clamp(2.1rem, 6vw, 3.1rem);
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: #F5EDD6;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.max-subtitle {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.65rem;
+  font-weight: 300;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: #6A5E7A;
+  margin-top: 0.4rem;
+}
+
+/* ---------- Ornamental Divider ---------- */
+
+.max-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  margin: 1.6rem 0;
+}
+
+.divider-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(to right, transparent, rgba(201,168,76,0.28), transparent);
+}
+
+.divider-diamond {
+  font-size: 0.45rem;
+  color: #C9A84C;
+  opacity: 0.65;
+  line-height: 1;
+}
+
+/* ---------- Form ---------- */
+
+.max-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.6rem;
+}
+
+.max-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.2rem;
+}
+
+.max-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.max-label {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif) !important;
+  font-size: 0.6rem !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.22em !important;
+  text-transform: uppercase !important;
+  color: #C9A84C !important;
+}
+
+.max-input {
+  background: rgba(6, 3, 14, 0.7);
+  border: none;
+  border-bottom: 1px solid rgba(201, 168, 76, 0.22);
+  color: #F5EDD6;
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.875rem;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  padding: 0.55rem 0;
+  outline: none;
+  transition: border-color 0.25s ease;
+  width: 100%;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.max-input::placeholder {
+  color: rgba(106, 94, 122, 0.55);
+}
+
+.max-input:focus {
+  border-bottom-color: #C9A84C;
+}
+
+/* Date input calendar icon tint */
+.max-input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(70%) sepia(40%) saturate(400%) hue-rotate(5deg);
+  opacity: 0.6;
+  cursor: pointer;
+}
+
+/* Select arrow */
+.max-select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23C9A84C' opacity='.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.25rem center;
+  padding-right: 1.5rem;
+  cursor: pointer;
+}
+
+.max-select option {
+  background: #0c0718;
+  color: #F5EDD6;
+}
+
+/* ---------- Checkbox ---------- */
+
+.max-checkbox-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.max-checkbox-input {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  width: 14px;
+  height: 14px;
+  appearance: none;
+  -webkit-appearance: none;
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  background: rgba(6, 3, 14, 0.7);
+  cursor: pointer;
+  position: relative;
+  transition: border-color 0.2s;
+}
+
+.max-checkbox-input:checked {
+  background: rgba(201, 168, 76, 0.15);
+  border-color: #C9A84C;
+}
+
+.max-checkbox-input:checked::after {
+  content: '◆';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.4rem;
+  color: #C9A84C;
+  line-height: 14px;
+  text-align: center;
+}
+
+.max-checkbox-text {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: #7A6E8A;
+  line-height: 1.5;
+}
+
+/* ---------- Button ---------- */
+
+.max-btn {
+  width: 100%;
+  padding: 0.9rem 1rem;
+  background: linear-gradient(135deg, #C9A84C 0%, #9B7220 50%, #C9A84C 100%);
+  background-size: 200% 100%;
+  background-position: 0% 0%;
+  border: none;
+  color: #080412;
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background-position 0.4s ease, box-shadow 0.3s ease, opacity 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.max-btn:hover:not(:disabled) {
+  background-position: 100% 0%;
+  box-shadow: 0 0 40px rgba(201, 168, 76, 0.28), 0 0 12px rgba(201, 168, 76, 0.15);
+}
+
+.max-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ---------- Spinner ---------- */
+
+.max-spinner {
+  display: inline-block;
+  width: 15px;
+  height: 15px;
+  border: 1.5px solid rgba(8, 4, 18, 0.25);
+  border-top-color: #080412;
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+}
+
+/* ---------- Links ---------- */
+
+.max-link {
+  color: #C9A84C !important;
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.72rem;
+  font-weight: 300;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.2s, opacity 0.2s;
+}
+
+.max-link:hover {
+  border-bottom-color: rgba(201, 168, 76, 0.45);
+  opacity: 0.85;
+  color: #C9A84C !important;
+}
+
+/* ---------- Messages ---------- */
+
+.max-error {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: #E07878;
+  text-align: center;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid rgba(224, 120, 120, 0.2);
+  background: rgba(224, 120, 120, 0.06);
+}
+
+.max-success-msg {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.7rem;
+  font-weight: 300;
+  letter-spacing: 0.06em;
+  color: #7DC4A0;
+  text-align: center;
+  padding: 0.6rem 0.8rem;
+  border: 1px solid rgba(125, 196, 160, 0.2);
+  background: rgba(125, 196, 160, 0.06);
+}
+
+/* ---------- Footer / Aux Text ---------- */
+
+.max-footer {
+  margin-top: 1.75rem;
+  text-align: center;
+}
+
+.max-footer-text {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.68rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: #5A5068;
+}
+
+.max-forgot-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -0.6rem;
+}
+
+/* ---------- Verify Page ---------- */
+
+.max-status-icon {
+  text-align: center;
+  font-size: 2.8rem;
+  margin-bottom: 0.75rem;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+.max-status-body {
+  text-align: center;
+}
+
+.max-status-lead {
+  font-family: var(--font-display, "Cormorant Garamond", serif);
+  font-size: 1.05rem;
   font-weight: 400;
+  font-style: italic;
+  color: #D5C8B0;
+  line-height: 1.65;
+  margin-bottom: 0.5rem;
 }
 
-label,span {
-  color: black;
+.max-status-sub {
+  font-family: var(--font-ui, "Josefin Sans", sans-serif);
+  font-size: 0.68rem;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: #6A5E7A;
+  line-height: 1.7;
+  margin-bottom: 1rem;
+}
 
+.max-countdown {
+  font-family: var(--font-display, "Cormorant Garamond", serif);
+  font-size: 0.95rem;
+  font-weight: 300;
+  letter-spacing: 0.12em;
+  color: #7A6E8A;
+  margin-bottom: 1.25rem;
+}
+
+.max-countdown-num {
+  font-size: 1.4rem;
+  font-weight: 600;
+  color: #C9A84C;
+  display: inline-block;
+  animation: countdown-pulse 1s ease-in-out infinite;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 640px) {
+  .max-card {
+    padding: 2.25rem 1.5rem 2rem;
+  }
+
+  .max-title {
+    font-size: 2rem;
+  }
+
+  .max-form-row {
+    grid-template-columns: 1fr;
+  }
+
+  .orb-1 { width: 300px; height: 300px; }
+  .orb-2 { width: 360px; height: 360px; }
+  .orb-3 { display: none; }
+}
+
+@media (max-width: 400px) {
+  .max-card {
+    padding: 1.75rem 1.25rem 1.5rem;
+  }
 }

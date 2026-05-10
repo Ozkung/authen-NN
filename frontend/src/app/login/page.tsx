@@ -3,15 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { signIn } from "next-auth/react";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  Input,
-  Button,
-  Link,
-  TextField,
-} from "@heroui/react";
+import MaxCard from "../components/MaxCard";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -24,72 +16,72 @@ export default function Login() {
     e.preventDefault();
     setIsLoading(true);
     setError("");
-
     try {
       const res = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
-
       if (res?.error) {
-        setError("Invalid credentials");
+        setError("Invalid email or password.");
       } else {
         router.push("/");
         router.refresh();
       }
-    } catch (err: any) {
-      setError("An unexpected error occurred");
+    } catch {
+      setError("An unexpected error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen py-2 bg-gray-50">
-      <Card className="w-[400px] shadow-lg">
-        <CardHeader className="flex flex-col items-center gap-1 py-6">
-          <h1 className="text-2xl font-bold">Login</h1>
-          <p className="text-small text-default-500">
-            Welcome back! Please login to continue.
-          </p>
-        </CardHeader>
-        <CardContent className="py-6 px-8">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-            <TextField onChange={setEmail} isRequired>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-              />
-            </TextField>
-            <TextField onChange={setPassword} isRequired>
-              <Input
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-              />
-            </TextField>
-            <div className="flex justify-end">
-              <Link href="/forgot-password">Forgot Password?</Link>
-            </div>
-            <Button
-              type="submit"
-              variant="primary"
-              isPending={isLoading}
-              className="mt-2 w-full"
-            >
-              Login
-            </Button>
-          </form>
-          {error && (
-            <p className="mt-4 text-center text-small text-danger">{error}</p>
-          )}
-          <p className="mt-6 text-center text-small">
-            Don't have an account? <Link href="/register">Register</Link>
-          </p>
-        </CardContent>
-      </Card>
-    </div>
+    <MaxCard title="Welcome Back" subtitle="Sign in to continue">
+      <form onSubmit={handleSubmit} className="max-form">
+        <div className="max-field">
+          <label className="max-label">Email Address</label>
+          <input
+            type="email"
+            className="max-input"
+            placeholder="your@email.com"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+            autoComplete="email"
+          />
+        </div>
+
+        <div className="max-field">
+          <label className="max-label">Password</label>
+          <input
+            type="password"
+            className="max-input"
+            placeholder="••••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+            autoComplete="current-password"
+          />
+        </div>
+
+        <div className="max-forgot-row">
+          <a href="/forgot-password" className="max-link">Forgot password?</a>
+        </div>
+
+        {error && <p className="max-error">{error}</p>}
+
+        <button type="submit" className="max-btn" disabled={isLoading}>
+          {isLoading ? <span className="max-spinner" /> : null}
+          {isLoading ? "Signing In…" : "Sign In"}
+        </button>
+      </form>
+
+      <div className="max-footer">
+        <p className="max-footer-text">
+          No account?{" "}
+          <a href="/register" className="max-link">Create one</a>
+        </p>
+      </div>
+    </MaxCard>
   );
 }
