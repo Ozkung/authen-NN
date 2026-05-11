@@ -83,7 +83,7 @@ export default function AdminPage() {
   // Form fields
   const [name, setName] = useState("");
   const [businessType, setBusinessType] = useState("");
-  const [operatingHours, setOperatingHours] = useState<number>(24);
+  const [operatingHours, setOperatingHours] = useState<number | "">(24);
   const [openTime, setOpenTime] = useState("08:00");
   const [closeTime, setCloseTime] = useState("");
   const [googleMapLink, setGoogleMapLink] = useState("");
@@ -118,20 +118,31 @@ export default function AdminPage() {
     reader.readAsDataURL(file);
   };
 
-  const handleHoursChange = (v: number) => {
-    setOperatingHours(v);
-    if (v < 24) setCloseTime(addHours(openTime, v));
+  const handleHoursChange = (v: string) => {
+    if (v === "") { setOperatingHours(""); return; }
+    const n = Number(v);
+    setOperatingHours(n);
+    if (n < 24) setCloseTime(addHours(openTime, n));
+    else setCloseTime("");
   };
 
   const handleOpenTimeChange = (v: string) => {
     setOpenTime(v);
-    if (operatingHours < 24) setCloseTime(addHours(v, operatingHours));
+    if (typeof operatingHours === "number" && operatingHours < 24) {
+      setCloseTime(addHours(v, operatingHours));
+    }
   };
 
   const resetForm = () => {
-    setName(""); setBusinessType(""); setOperatingHours(24);
-    setOpenTime("08:00"); setCloseTime(""); setGoogleMapLink("");
-    setLogoFile(null); setLogoPreview(null); setFormError("");
+    setName("");
+    setBusinessType("");
+    setOperatingHours("");
+    setOpenTime("08:00");
+    setCloseTime("");
+    setGoogleMapLink("");
+    setLogoFile(null);
+    setLogoPreview(null);
+    setFormError("");
   };
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -143,10 +154,12 @@ export default function AdminPage() {
       const formData = new FormData();
       formData.append("name", name);
       if (businessType) formData.append("businessType", businessType);
-      formData.append("operatingHours", String(operatingHours));
-      if (operatingHours < 24) {
-        formData.append("openTime", openTime);
-        formData.append("closeTime", closeTime);
+      if (operatingHours !== "") {
+        formData.append("operatingHours", String(operatingHours));
+        if (operatingHours < 24) {
+          formData.append("openTime", openTime);
+          formData.append("closeTime", closeTime);
+        }
       }
       if (googleMapLink) formData.append("googleMapLink", googleMapLink);
       if (logoFile) formData.append("logo", logoFile);
@@ -157,7 +170,10 @@ export default function AdminPage() {
         body: formData,
       });
       const data = await res.json();
-      if (!res.ok) { setFormError(data.message ?? "Failed to create store"); return; }
+      if (!res.ok) {
+        setFormError(data.message ?? "Failed to create store");
+        return;
+      }
       setStores((prev) => [...prev, { store: data, role: "owner" }]);
       resetForm();
       setShowForm(false);
@@ -168,11 +184,13 @@ export default function AdminPage() {
     }
   };
 
-  const hoursOptions = Array.from({ length: 23 }, (_, i) => i + 2);
+  // 24 → 2 (ไม่รวม 24 เพราะมี option "24 ชั่วโมง" แยกต่างหาก)
+  const hoursOptions = Array.from({ length: 22 }, (_, i) => 23 - i);
 
   return (
     <div className="admin-scene">
-      <div className="orb orb-1" /><div className="orb orb-2" />
+      <div className="orb orb-1" />
+      <div className="orb orb-2" />
 
       <div className="admin-wrap">
         {/* Top bar */}
@@ -187,7 +205,10 @@ export default function AdminPage() {
           </div>
           <div className="admin-user">
             <span className="admin-email">{session?.user?.email}</span>
-            <button className="admin-logout" onClick={() => signOut({ callbackUrl: "/login" })}>
+            <button
+              className="admin-logout"
+              onClick={() => signOut({ callbackUrl: "/login" })}
+            >
               Sign out
             </button>
           </div>
@@ -197,11 +218,16 @@ export default function AdminPage() {
         <div className="admin-title-row">
           <div>
             <h1 className="admin-title">Your Stores</h1>
-            <p className="admin-sub">Select a store to enter, or create a new one.</p>
+            <p className="admin-sub">
+              Select a store to enter, or create a new one.
+            </p>
           </div>
           <button
             className="admin-new-btn"
-            onClick={() => { setShowForm((v) => !v); if (showForm) resetForm(); }}
+            onClick={() => {
+              setShowForm((v) => !v);
+              if (showForm) resetForm();
+            }}
           >
             {showForm ? "✕ Cancel" : "+ New Store"}
           </button>
@@ -210,7 +236,6 @@ export default function AdminPage() {
         {/* ── Create store form ── */}
         {showForm && (
           <form className="admin-form" onSubmit={handleCreate}>
-
             {/* Logo + Name row */}
             <div className="cf-logo-name-row">
               {/* Logo upload */}
@@ -222,10 +247,18 @@ export default function AdminPage() {
                   title="Upload logo"
                 >
                   {logoPreview ? (
-                    <img src={logoPreview} alt="logo preview" className="cf-logo-img" />
+                    <img
+                      src={logoPreview}
+                      alt="logo preview"
+                      className="cf-logo-img"
+                    />
                   ) : (
                     <span className="cf-logo-initials">
-                      {name ? storeInitials(name) : <span className="cf-logo-icon">📷</span>}
+                      {name ? (
+                        storeInitials(name)
+                      ) : (
+                        <span className="cf-logo-icon">📷</span>
+                      )}
                     </span>
                   )}
                   <span className="cf-logo-overlay">Upload</span>
@@ -265,7 +298,9 @@ export default function AdminPage() {
               >
                 <option value="">— เลือกประเภทธุรกิจ —</option>
                 {BUSINESS_TYPES.map((bt) => (
-                  <option key={bt.value} value={bt.value}>{bt.label}</option>
+                  <option key={bt.value} value={bt.value}>
+                    {bt.label}
+                  </option>
                 ))}
               </select>
             </div>
@@ -277,16 +312,18 @@ export default function AdminPage() {
                 <select
                   className="cf-select"
                   value={operatingHours}
-                  onChange={(e) => handleHoursChange(Number(e.target.value))}
+                  onChange={(e) => handleHoursChange(e.target.value)}
+                  required
                 >
+                  <option value="">— เลือกเวลาทำการ —</option>
                   <option value={24}>24 ชั่วโมง</option>
-                  {hoursOptions.reverse().map((h) => (
+                  {hoursOptions.map((h) => (
                     <option key={h} value={h}>{h} ชั่วโมง</option>
                   ))}
                 </select>
               </div>
 
-              {operatingHours < 24 && (
+              {typeof operatingHours === "number" && operatingHours < 24 && (
                 <>
                   <div className="cf-field">
                     <label className="cf-label">เวลาเปิด</label>
@@ -332,12 +369,16 @@ export default function AdminPage() {
 
         {/* Store list */}
         {loading ? (
-          <div className="admin-loading"><div className="admin-spinner" /></div>
+          <div className="admin-loading">
+            <div className="admin-spinner" />
+          </div>
         ) : stores.length === 0 ? (
           <div className="admin-empty">
             <div className="admin-empty-icon">🏪</div>
             <p className="admin-empty-title">No stores yet</p>
-            <p className="admin-empty-sub">Create your first store to get started.</p>
+            <p className="admin-empty-sub">
+              Create your first store to get started.
+            </p>
           </div>
         ) : (
           <div className="admin-grid">
@@ -351,9 +392,15 @@ export default function AdminPage() {
                   {/* Logo or initials */}
                   <div className="asc-logo">
                     {store.logo ? (
-                      <img src={`${API}${store.logo}`} alt={store.name} className="asc-logo-img" />
+                      <img
+                        src={`${API}${store.logo}`}
+                        alt={store.name}
+                        className="asc-logo-img"
+                      />
                     ) : (
-                      <span className="asc-logo-initials">{storeInitials(store.name)}</span>
+                      <span className="asc-logo-initials">
+                        {storeInitials(store.name)}
+                      </span>
                     )}
                   </div>
                   <span
@@ -367,7 +414,9 @@ export default function AdminPage() {
                 <div className="admin-store-slug">/{store.slug}</div>
                 {store.businessType && (
                   <div className="asc-type">
-                    {BUSINESS_TYPES.find((b) => b.value === store.businessType)?.label.split(" (")[0] ?? store.businessType}
+                    {BUSINESS_TYPES.find(
+                      (b) => b.value === store.businessType,
+                    )?.label.split(" (")[0] ?? store.businessType}
                   </div>
                 )}
                 {store.operatingHours != null && (
