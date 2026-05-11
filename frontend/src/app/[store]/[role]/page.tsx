@@ -23,7 +23,7 @@ const ROLE_PERMS: Record<string, string[]> = {
 };
 
 export default function WorkspacePage() {
-  const { store: storeSlug, role } = useParams<{ store: string; role: string }>();
+  const { store: storeId, role } = useParams<{ store: string; role: string }>();
   const { data: session } = useSession();
   const router = useRouter();
 
@@ -41,19 +41,19 @@ export default function WorkspacePage() {
   useEffect(() => {
     if (!accessToken || !canManageMembers) return;
     setLoadingMembers(true);
-    fetch(`${API}/stores/${storeSlug}/members`, {
+    fetch(`${API}/stores/${storeId}/members`, {
       headers: { Authorization: `Bearer ${accessToken}` },
     })
       .then((r) => r.json())
       .then((data) => { setMembers(Array.isArray(data) ? data : []); setLoadingMembers(false); })
       .catch(() => setLoadingMembers(false));
-  }, [accessToken, storeSlug, canManageMembers]);
+  }, [accessToken, storeId, canManageMembers]);
 
   const handleAddMember = async (e: React.FormEvent) => {
     e.preventDefault();
     setAddError(""); setAddSuccess(""); setAdding(true);
     try {
-      const res = await fetch(`${API}/stores/${storeSlug}/members`, {
+      const res = await fetch(`${API}/stores/${storeId}/members`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -88,7 +88,7 @@ export default function WorkspacePage() {
               <circle cx="24" cy="12" r="12" fill="#0BA6DF" opacity="0.82" />
               <circle cx="18" cy="12" r="6" fill="white" opacity="0.28" />
             </svg>
-            <span className="ws-store-name">/{storeSlug}</span>
+            <span className="ws-store-name">/{storeId}</span>
           </div>
           <div className="ws-header-right">
             <span className="ws-email">{session?.user?.email}</span>
@@ -110,7 +110,7 @@ export default function WorkspacePage() {
             <h1 className="ws-title">
               Welcome to{" "}
               <span className="ws-title-store">
-                {storeSlug.replace(/-/g, " ")}
+                {storeId.replace(/-/g, " ")}
               </span>
             </h1>
             <p className="ws-sub">You are signed in as <strong>{role}</strong>.</p>

@@ -28,9 +28,9 @@ export default function Login() {
         setError("Invalid email or password.");
       } else {
         const session = await getSession();
-        const slug = (session as any)?.storeSlug;
+        const storeId = (session as any)?.storeId;
         const userRole = (session as any)?.role;
-        router.push(slug && userRole ? `/${slug}/${userRole}` : "/admin");
+        router.push(storeId && userRole ? `/${storeId}/${userRole}` : "/admin");
         router.refresh();
       }
     } catch {

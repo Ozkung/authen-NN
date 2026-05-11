@@ -13,13 +13,27 @@ export class StoresService {
     @InjectModel(User.name) private userModel: Model<User>,
   ) {}
 
-  async create(name: string, slug: string, ownerId: string): Promise<Store> {
-    const existing = await this.storeModel.findOne({ slug }).exec();
-    if (existing) throw new ConflictException('Store slug already taken');
-
-    const store = await this.storeModel.create({ name, slug, owner: ownerId });
+  async create(
+    name: string,
+    ownerId: string,
+    extras?: {
+      logo?: string;
+      businessType?: string;
+      operatingHours?: number;
+      openTime?: string;
+      closeTime?: string;
+      googleMapLink?: string;
+    },
+  ): Promise<Store> {
+    const base = name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '').substring(0, 40);
+    const slug = `${base}-${Date.now().toString(36)}`;
+    const store = await this.storeModel.create({ name, slug, owner: ownerId, ...extras });
     await this.memberModel.create({ store: store._id, user: ownerId, role: StoreRole.OWNER });
     return store;
+  }
+
+  async findById(id: string): Promise<Store | null> {
+    return this.storeModel.findById(id).exec();
   }
 
   async findBySlug(slug: string): Promise<Store | null> {

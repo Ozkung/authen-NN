@@ -30,7 +30,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             id: data.access_token,
             email: credentials.email as string,
             accessToken: data.access_token,
-            storeSlug: data.storeSlug ?? null,
+            storeId: data.storeId ?? null,
             role: data.role ?? null,
           };
         }
@@ -79,7 +79,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     async jwt({ token, user }) {
       if (user) {
         token.accessToken = (user as any).accessToken;
-        token.storeSlug = (user as any).storeSlug ?? null;
+        token.storeId = (user as any).storeId ?? null;
         token.role = (user as any).role ?? null;
       }
       return token;
@@ -87,7 +87,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
 
     async session({ session, token }) {
       (session as any).accessToken = (token as any).accessToken;
-      (session as any).storeSlug = (token as any).storeSlug ?? null;
+      (session as any).storeId = (token as any).storeId ?? null;
       (session as any).role = (token as any).role ?? null;
       return session;
     },

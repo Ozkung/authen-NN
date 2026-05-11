@@ -9,9 +9,29 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  UseInterceptors,
+  UploadedFile,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
 import { StoresService } from './stores.service';
 import { StoreRole } from './schemas/store-member.schema';
+
+const logoStorage = diskStorage({
+  destination: './uploads/logos',
+  filename: (_req, file, cb) => {
+    const unique = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+    cb(null, `${unique}${extname(file.originalname)}`);
+  },
+});
+
+const imageFilter = (_req: any, file: Express.Multer.File, cb: any) => {
+  if (!file.mimetype.match(/^image\/(jpeg|jpg|png|gif|webp|svg\+xml)$/)) {
+    return cb(new BadRequestException('Only image files are allowed'), false);
+  }
+  cb(null, true);
+};
 
 @Controller('stores')
 export class StoresController {
@@ -19,20 +39,44 @@ export class StoresController {
 
   /** List all stores the current user belongs to */
   @Get('mine')
-  async myStores(@Request() req) {
+  async myStores(@Request() req: any) {
     return this.storesService.findUserStores(req.user.sub);
   }
 
-  /** Create a new store — caller becomes owner */
+  /** Create a new store — _id becomes the URL identifier */
   @Post()
-  async create(@Body() body: { name: string; slug: string }, @Request() req) {
-    return this.storesService.create(body.name, body.slug, req.user.sub);
+  @UseInterceptors(FileInterceptor('logo', {
+    storage: logoStorage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: imageFilter,
+  }))
+  async create(
+    @UploadedFile() logo: Express.Multer.File | undefined,
+    @Body() body: {
+      name: string;
+      businessType?: string;
+      operatingHours?: string;
+      openTime?: string;
+      closeTime?: string;
+      googleMapLink?: string;
+    },
+    @Request() req: any,
+  ) {
+    const hours = body.operatingHours ? Number(body.operatingHours) : undefined;
+    return this.storesService.create(body.name, req.user.sub, {
+      logo: logo ? `/uploads/logos/${logo.filename}` : undefined,
+      businessType: body.businessType || undefined,
+      operatingHours: hours,
+      openTime: hours && hours < 24 ? body.openTime : undefined,
+      closeTime: hours && hours < 24 ? body.closeTime : undefined,
+      googleMapLink: body.googleMapLink || undefined,
+    });
   }
 
   /** List members of a store (owner/admin only) */
-  @Get(':slug/members')
-  async listMembers(@Param('slug') slug: string, @Request() req) {
-    const store = await this.storesService.findBySlug(slug);
+  @Get(':storeId/members')
+  async listMembers(@Param('storeId') storeId: string, @Request() req: any) {
+    const store = await this.storesService.findById(storeId);
     if (!store) throw new NotFoundException('Store not found');
 
     const caller = await this.storesService.findMember(store._id as any, req.user.sub);
@@ -44,13 +88,13 @@ export class StoresController {
   }
 
   /** Add a member to a store by email (owner/admin only) */
-  @Post(':slug/members')
+  @Post(':storeId/members')
   async addMember(
-    @Param('slug') slug: string,
+    @Param('storeId') storeId: string,
     @Body() body: { email?: string; userId?: string; role: StoreRole },
-    @Request() req,
+    @Request() req: any,
   ) {
-    const store = await this.storesService.findBySlug(slug);
+    const store = await this.storesService.findById(storeId);
     if (!store) throw new NotFoundException('Store not found');
 
     const caller = await this.storesService.findMember(store._id as any, req.user.sub);
@@ -70,13 +114,13 @@ export class StoresController {
   }
 
   /** Remove a member from a store (owner only) */
-  @Delete(':slug/members/:userId')
+  @Delete(':storeId/members/:userId')
   async removeMember(
-    @Param('slug') slug: string,
+    @Param('storeId') storeId: string,
     @Param('userId') userId: string,
-    @Request() req,
+    @Request() req: any,
   ) {
-    const store = await this.storesService.findBySlug(slug);
+    const store = await this.storesService.findById(storeId);
     if (!store) throw new NotFoundException('Store not found');
 
     const caller = await this.storesService.findMember(store._id as any, req.user.sub);

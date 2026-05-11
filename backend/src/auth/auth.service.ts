@@ -65,11 +65,11 @@ export class AuthService {
     const isMatch = await bcrypt.compare(pass, user.password);
     if (!isMatch) throw new UnauthorizedException('Invalid credentials');
 
-    let storeSlug: string | undefined;
+    let storeId: string | undefined;
     let role: string | undefined;
 
     if (identityStore) {
-      const store = await this.storesService.findBySlug(identityStore);
+      const store = await this.storesService.findById(identityStore);
       if (!store) throw new UnauthorizedException('Store not found');
 
       const member = await this.storesService.findMember(
@@ -78,14 +78,14 @@ export class AuthService {
       );
       if (!member) throw new UnauthorizedException('You do not have access to this store');
 
-      storeSlug = store.slug;
+      storeId = (store._id as any).toString();
       role = member.role;
     }
 
-    const payload = { sub: user._id, email: user.email, storeSlug, role };
+    const payload = { sub: user._id, email: user.email, storeId, role };
     return {
       access_token: await this.jwtService.signAsync(payload),
-      storeSlug: storeSlug ?? null,
+      storeId: storeId ?? null,
       role: role ?? null,
     };
   }
