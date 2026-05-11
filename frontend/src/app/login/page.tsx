@@ -28,9 +28,9 @@ export default function Login() {
         setError("Invalid email or password.");
       } else {
         const session = await getSession();
-        const storeId = (session as any)?.storeId;
+        const slug = (session as any)?.storeSlug;
         const userRole = (session as any)?.role;
-        router.push(storeId && userRole ? `/${storeId}/${userRole}` : "/admin");
+        router.push(slug && userRole ? `/${slug}/${userRole}` : "/admin");
         router.refresh();
       }
     } catch {
@@ -44,7 +44,15 @@ export default function Login() {
     <MaxCard title="Welcome Back" subtitle="Sign in to continue">
       <form onSubmit={handleSubmit} className="max-form">
         <div className="max-field">
-          <label className="max-label">Email Address</label>
+          <label
+            className="max-l
+          
+          
+          
+          abel"
+          >
+            Email Address
+          </label>
           <input
             type="email"
             className="max-input"
